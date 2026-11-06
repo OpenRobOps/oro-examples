@@ -31,6 +31,9 @@ spec:
     nav_goal_topic: "goal_pose"
     path_topics: {"0": {"topic": "plan"}}
     set_pose_topic: "initialpose"
+    # Send the pose even with no map (start.sh -g without -map or -slam). With a laser, this
+    # agentlet takes the pose over from RosPoseAgentlet, and by default it waits for a map first.
+    disable_map_published_flag: true
 ---
 # ORO teleop. The agent picks Twist or TwistStamped from what's already on the topic.
 apiVersion: v0.1
