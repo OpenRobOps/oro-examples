@@ -1,0 +1,723 @@
+#######################################################################################
+## DataSourceDefinition                             
+#######################################################################################
+apiVersion: v0.1
+kind: DataSourceDefinition
+metadata:
+  id: batteryPercentage
+  scope: ""
+spec:
+  label: Battery Percentage
+  # Values arrive as a 0..1 fraction; unit '%' makes ORO display them as a
+  # percentage (the formatter multiplies by 100), so 0.12 shows as "12%".
+  unit: '%'
+  precision: 0
+  source:
+    keyValue:
+      key: "battery_percentage"
+  timeline: {}
+---
+apiVersion: v0.1
+kind: DataSourceDefinition
+metadata:
+  id: batteryVoltage
+  scope: ""
+spec:
+  label: Battery Voltage
+  source:
+    keyValue:
+      key: "battery_voltage"
+  timeline: {}
+---
+apiVersion: v0.1
+kind: DataSourceDefinition
+metadata:
+  id: batteryCharging
+  scope: ""
+spec:
+  label: Battery Voltage
+  source:
+    keyValue:
+      key: "battery_charging"
+---
+apiVersion: v0.1
+kind: DataSourceDefinition
+metadata:
+  id: nav2Health
+  scope: ""
+spec:
+  label: Nav2 Health
+  source:
+    # Maps a ROS Diagnostics key-value into an attribute, matched by the diagnostic
+    # status name (namespace) plus key. This reads the Nav2 navigation lifecycle
+    # manager's health summary, which the diagnostics aggregator already publishes
+    # on /diagnostics_agg under the "/Other" group.
+    rosDiagnostics:
+      namespace: "/Other"
+      key: "lifecycle_manager_navigation: Nav2 Health"
+---
+apiVersion: v0.1
+kind: DataSourceDefinition
+metadata:
+  id: navigationActivity
+  scope: ""
+spec:
+  label: Navigation Activity
+  source:
+    # The diagnostics_watcher's cmd_vel freshness check, grouped under
+    # /Navigation by the aggregator: OK while navigating (cmd_vel flowing),
+    # WARN when idle. The value is the check's message, e.g.
+    # "last message 0.07s ago" or "last message 163.76s ago (threshold 5.00s)".
+    rosDiagnostics:
+      namespace: "/Navigation"
+      key: "diagnostics_watcher: cmd_vel_freshness"
+---
+apiVersion: v0.1
+kind: DataSourceDefinition
+metadata:
+  id: message
+  scope: ""
+spec:
+  label: Message
+  source:
+    keyValue:
+      key: "echo"
+---
+#######################################################################################
+## DashboardDefinition
+#######################################################################################
+apiVersion: v0.1
+kind: DashboardDefinition
+metadata:
+  id: welcome
+  scope: ''
+spec:
+  label: Welcome
+  order: 0
+  sections:
+  - label: ''
+    scope: robot
+    withControlWidget: false
+    widgets:
+    - type: text
+      label: Welcome
+      config:
+        text: |
+          # Welcome to your first OpenRobOps dashboard
+          
+          OpenRobOps (ORO) is an open-source robot fleet management and operations platform. 
+          It provides real-time observability, monitoring, and control for autonomous mobile robots (AMRs) — fully self-hostable, with native support for ROS and Open RMF.
+          Learn more on [https://openrobops.org/](https://openrobops.org/).
+      layout:
+        chroma: false
+        grid: 12
+  - label: 'Dashboards'
+    scope: robot
+    withControlWidget: false
+    widgets:
+    - type: text
+      label: Fleet
+      config:
+        text: |
+          [![fleet](/images/fleet.svg)](/dashboards/fleet)
+          
+          ### [Fleet](/dashboards/fleet)
+          
+          Overview of all robots in the fleet, their status and fleet-level diagnostics
+          including audit logs and incidents
+      layout:
+        chroma: false
+        grid: 4
+    - type: text
+      label: Robot
+      config:
+        text: |
+          
+          [![robot](/images/bot.svg)](/dashboards/robot)
+          
+          ### [Robot](/dashboards/robot)
+          
+          Detailed view of a single robot, including its health, telemetry, reported data, and actions
+      layout:
+        chroma: false
+        grid: 4
+    - type: text
+      label: Navigation
+      config:
+        text: |
+          [![navigation](/images/navigation.svg)](/dashboards/navigation)
+          
+          ### [Navigation](/dashboards/navigation)
+          
+          Real-time navigation status and controls on a map, including teleoperations and relocalize
+      layout:
+        chroma: false
+        grid: 4
+  - label: 'Simulation'
+    scope: robot
+    withControlWidget: false
+    widgets:
+    - type: text
+      label: Map
+      config:
+        text: |
+          ### Flatland simulator
+          
+          flatland-sim is a simple 2D simulation robot running [ROS2](https://www.ros.org/). It implements the [Flatland](https://github.com/avidbots/flatland) simulator and the [Nav2](https://github.com/ros-navigation/navigation2) navigation stack, providing a realistic simulation of the robot's behavior and navigation. It also implements a battery plugin that simulates the robot's battery state, which drains rather quickly for demo purposes, and recharges when the robot enters a charging zone.
+          
+          ### Map
+          
+          The map consists of 4 offices and a corridor. Office A and D have charging zones. 
+          
+          ```
+              ┌─────────────┬─────────────┐
+              │        dock │             │
+              │      A      │      B      │
+              └─────   ─────┴─────   ─────┘
+              │         corridor          │
+              ┌─────   ─────┬─────   ─────┐
+              │      C      │      D      │
+              │             │ dock        │
+              └─────────────┴─────────────┘
+          ```
+      layout:
+        chroma: false
+        grid: 6
+    - type: text
+      label: Action
+      config:
+        text: |
+          ### Action
+          
+          Currently the robot accepts the following commands:
+          
+          **Dock**  
+          [DOCK A](/dashboards/ops), [DOCK D](/dashboards/ops): Navigates to the charging zones in office "A" or "D"  
+          [DOCK (NEAREST)](/dashboards/ops): Goes to the nearest charging zone
+          
+          **Battery**  
+          [RESET](/dashboards/ops): Replaces the battery to 100%  
+          [CHARGING](/dashboards/ops), [DISCHARGING](/dashboards/ops): toggles the charging state
+          
+          **Message**  
+          [HELLO](/dashboards/ops), [MESSAGE](/dashboards/ops): Echoes a message back from the robot as an `echo` key-value  
+          [WARNING](/dashboards/ops), [ERROR](/dashboards/ops): Sets the message status, raising an incident visible in Fleet View
+          
+          **Others**  
+          [RESTART AGENT](/dashboards/ops): Restart agent running on a selected robot  
+          [CANCEL NAVIGATION](/dashboards/ops): Cancel the current navigation
+          
+          
+          ### Key-value pairs
+          
+          Additionally, the robot reports key-value pairs as custom data elements, including `battery_charging`, `battery_percentage` and `battery_voltage` for battery state, `estimated_time_remaining` from the nav2 stack, and `echo` for messages echoed back by the Message actions. 
+          It also reports a `nav2Health` value collected from ROS Diagnostics.
+          These are added to other built-in attributes implemented by the agent such as CPU usage, disk usage, network rate, etc.
+      layout:
+        chroma: false
+        grid: 6
+    - type: text
+      label: Footer
+      config:
+        text: |
+          This simulation is available on [Github](https://github.com/OpenRobOps/oro-examples/tree/main/flatland-nav2-sim) to be used as a ready-to-run docker environment
+          which includes the ORO agent as a sidecar, ready to connect to OpenRobOps.
+      layout:
+        chroma: false
+        grid: 12
+
+---
+apiVersion: v0.1
+kind: DashboardDefinition
+metadata:
+  id: fleet
+  scope: ''
+spec:
+  label: Fleet
+  order: 1
+  sections:
+  - label: Fleet
+    scope: fleet
+    widgets:
+    - config:
+        statuses:
+        - id: cpuLoadPercentage
+          label: CPU
+        - id: diskUsagePercentage
+          label: Disk
+        - id: batteryPercentage
+          label: Battery
+        - id: message
+          label: Message
+        - id: navigationActivity
+          label: Navigation
+      label: Fleet Status
+      layout:
+        chroma: true
+        grid: 12
+      type: fleetStatus
+    withControlWidget: true
+  - label: Details
+    scope: fleet
+    widgets:
+    - label: Fleet Log
+      layout:
+        chroma: true
+        grid: 4
+        height: 1
+      type: auditLogFleet
+    - label: Incident List
+      layout:
+        chroma: true
+        grid: 8
+        height: 1
+      type: incidentList
+    - label: Incident Timeline
+      layout:
+        chroma: true
+        grid: 12
+        height: 1
+      type: incidentTimeline
+    withControlWidget: false
+---    
+apiVersion: v0.1
+kind: DashboardDefinition
+metadata:
+  id: robot
+  scope: ''
+spec:
+  label: Robot
+  order: 2
+  sections:
+  - label: Health
+    withControlWidget: true
+    scope: robot
+    widgets:
+    - config:
+        dataSources:
+        - id: cpuLoadPercentage
+          label: CPU usage
+          type: gauge
+          unit: '%'
+        - id: diskUsagePercentage
+          label: Disk usage
+          type: gauge
+          unit: '%'
+        - id: batteryPercentage
+          label: Battery
+          type: gauge
+          unit: '%'
+        - id: networkOroRate
+          label: Agent network rate
+          type: gauge
+          unit: kbps
+      label: Vitals
+      layout:
+        chroma: true
+        grid: 4
+        height: 1
+      type: vitals
+    - label: Data Sources
+      type: listData
+      layout:
+        chroma: true
+        grid: 4
+        height: 1
+      config:
+        dataSources:
+        - id: batteryCharging
+          label: Charging state
+          type: boolean
+        - id: batteryVoltage
+          label: Battery voltage (V)
+          unit: V
+          type: text
+        - id: batteryPercentage
+          label: Battery percentage
+          unit: "%"
+          type: text
+        - id: nav2Health
+          label: Nav2 health
+          type: text
+        - id: navigationActivity
+          label: Navigation activity
+          type: text
+    - config: {}
+      label: Actions
+      layout:
+        chroma: true
+        grid: 4
+        height: 1
+      type: actionsWidget
+    - label: Key Value pairs
+      type: keyValues
+      layout:
+        chroma: true
+        grid: 4
+        height: 1
+    - type: chart
+      label: Battery
+      config:
+        chartType: linechart
+        dataSources:
+        - id: batteryPercentage
+          label: Batt %
+          precision: 1
+          scale: 100
+        - id: batteryVoltage
+          label: Batt V
+          precision: 2
+          scale: 1
+        max: 120
+        min: 0
+      layout:
+        chroma: true
+        grid: 8
+        height: 1
+    - type: diagnostics
+      label: Diagnostics
+      layout:
+        chroma: true
+        height: 1
+---
+apiVersion: v0.1
+kind: DashboardDefinition
+metadata:
+  id: navigation
+  scope: ''
+spec:
+  label: Navigation
+  order: 4
+  sections:
+  - label: Robot Navigation
+    withControlWidget: true
+    scope: navigation
+    widgets:
+    - label: Navigation
+      layout:
+        grid: 12
+        height: 2
+      type: navigation
+---
+#######################################################################################
+## ActionDefinition
+#######################################################################################
+apiVersion: v0.1
+kind: ActionDefinition
+metadata:
+  id: BatteryReset
+  scope: ''
+spec:
+  label: Reset
+  group: Battery
+  type: PublishToTopic
+  arguments:
+  - name: message
+    value: reset
+  description: 'Reset battery to 100%'
+  lock: true
+---
+apiVersion: v0.1
+kind: ActionDefinition
+metadata:
+  id: BatteryDischarge
+  scope: ''
+spec:
+  label: Discharging
+  group: Battery
+  type: PublishToTopic
+  arguments:
+  - name: message
+    value: discharge
+  description: 'Start discharging'
+  lock: true
+---
+apiVersion: v0.1
+kind: ActionDefinition
+metadata:
+  id: BatteryCharge
+  scope: ''
+spec:
+  label: Charging
+  group: Battery
+  type: PublishToTopic
+  arguments:
+  - name: message
+    value: charge
+  description: 'Start charging'
+  lock: true    
+---
+apiVersion: v0.1
+kind: ActionDefinition
+metadata:
+  id: DockAuto
+  scope: ''
+spec:
+  label: Dock (nearest)
+  group: Dock
+  type: PublishToTopic
+  arguments:
+  - name: message
+    value: dock
+  description: 'Go to nearest charger'
+  lock: true      
+  widgets:
+  - navigation
+---
+apiVersion: v0.1
+kind: ActionDefinition
+metadata:
+  id: DockA
+  scope: ''
+spec:
+  label: Dock A
+  group: Dock
+  type: PublishToTopic
+  arguments:
+  - name: message
+    value: dock=A
+  description: 'Go to Charger A'
+  lock: true      
+  widgets:
+  - navigation
+---
+apiVersion: v0.1
+kind: ActionDefinition
+metadata:
+  id: DockD
+  scope: ''
+spec:
+  label: Dock D
+  group: Dock
+  type: PublishToTopic
+  arguments:
+  - name: message
+    value: dock=D
+  description: 'Go to Charger D'
+  lock: true
+  widgets:
+  - navigation
+---
+apiVersion: v0.1
+kind: ActionDefinition
+metadata:
+  id: MessageHello
+  scope: ''
+spec:
+  label: Hello
+  group: Message
+  type: PublishToTopic
+  arguments:
+  - name: message
+    value: echo=Hello from ORO!
+  description: 'Echo a hello message back from the robot'
+  lock: true
+---
+apiVersion: v0.1
+kind: ActionDefinition
+metadata:
+  id: MessageWarning
+  scope: ''
+spec:
+  label: Warning
+  group: Message
+  type: PublishToTopic
+  arguments:
+  - name: message
+    value: echo=warning
+  description: 'Set the message status to warning'
+  lock: true
+---
+apiVersion: v0.1
+kind: ActionDefinition
+metadata:
+  id: MessageError
+  scope: ''
+spec:
+  label: Error
+  group: Message
+  type: PublishToTopic
+  arguments:
+  - name: message
+    value: echo=error
+  description: 'Set the message status to error'
+  lock: true
+---
+apiVersion: v0.1
+kind: ActionDefinition
+metadata:
+  id: MessageCustom
+  scope: ''
+spec:
+  label: Message
+  group: Message
+  type: PublishToTopic
+  arguments:
+  - name: message
+    value: echo={{text}}
+  - name: text
+    type: string
+    input:
+      control: text
+  description: 'Echo a custom message back from the robot'
+  lock: true
+---
+#######################################################################################
+## ModuleState
+#######################################################################################
+# CustomDataAgentlet: Startup defaults are fine
+# RosMapAgentlet, RosPoseAgentlet: Startup defaults are fine (just runlevel)
+# RosImageAgentlet: Startup defaults should be fine (to be tested - flatland does not have images)
+# RosLocalizationAgentlet: This is where most flatland topics need to be configured. Also enable it by default, runLevel 5 (it is the default, don't forget to keep this setting)
+apiVersion: v0.1
+kind: ModuleState
+metadata:
+  id: RosLocalizationAgentlet
+  scope: ''
+spec:
+  state:
+    minRunlevel: 5
+    map_topic: "map"
+    nav_goal_topic: "goal_pose"
+    laser_topic: "scan"
+    costmap_topic: "local_costmap/costmap"
+    set_pose_topic: "flatland_0/initialpose"
+    path_topics: 
+     "0": { "topic": "plan"}
+---
+# RosDiagnosticsAgentlet: Enable it (runlevel 5) so the agent forwards /diagnostics_agg.
+# Required for ROS Diagnostics key-values to reach ORO and map to attributes
+# (see the nav2Health DataSource above).
+apiVersion: v0.1
+kind: ModuleState
+metadata:
+  id: RosDiagnosticsAgentlet
+  scope: ''
+spec:
+  state:
+    minRunlevel: 5
+---
+# RosTeleopAgentlet: Set the cmd_vel topic
+apiVersion: v0.1
+kind: ModuleState
+metadata:
+  id: RosTeleopAgentlet
+  scope: ''
+spec:
+  state:
+    publish_zero_vel: true
+    cmd_vel_topic: "cmd_vel"   # flatland_server drives the robot from /cmd_vel
+---
+# RosImageAgentlet: Set the image topic
+apiVersion: v0.1
+kind: ModuleState
+metadata:
+  id: RosImageAgentlet
+  scope: ''
+spec:
+  state:
+    camera_topics:
+      0: "image_raw/compressed"
+    cameraViewOn: true
+    cameras_config:
+      0:
+        topic: "image_raw/compressed"
+        output_encoding: 'mono8'
+        quality: 50
+        rate: 2
+        img_width: 320
+        img_height: 240
+        is_on: true
+---
+#######################################################################################
+## Battery status thresholds + incident
+#######################################################################################
+# Status thresholds on the battery percentage attribute. The ingest status engine
+# evaluates battery_percentage and raises a warning/error alert that carries the
+# evaluated value, so the incident's Data column shows the percentage (e.g. "12%").
+# The ERROR rule is listed first on purpose: the evaluator stops at the first
+# matching rule, so the stricter threshold must come first or a critical reading
+# would be reported as a warning.
+apiVersion: v0.1
+kind: StatusDefinition
+metadata:
+  id: batteryPercentage
+  scope: ''
+spec:
+  rules:
+  # Thresholds are on the stored 0..1 fraction (0.08 = 8%, 0.20 = 20%).
+  - function: BELOW
+    params: [0.15]
+    status: ERROR
+  - function: BELOW
+    params: [0.30]
+    status: WARNING
+---
+# Incident definition keyed to the battery percentage attribute (the triggerId).
+# As the battery drains the incident escalates: a low-battery warning offers the
+# operator a manual dock action; a critical error docks the robot automatically;
+# on recovery the battery is reset.
+apiVersion: v0.1
+kind: IncidentDefinition
+metadata:
+  id: batteryPercentage
+  scope: ''
+spec:
+  label: Battery low
+  labelTemplate: '{{robotName}}: battery low'
+  warning:
+    severity: SEV 2
+    manualActions:
+    - DockAuto
+  error:
+    severity: SEV 0
+    autoActions:
+    - DockAuto
+---
+# Status on the navigation activity value (see the navigationActivity
+# DataSource): the watcher's WARN/stale messages carry "(threshold ...)"
+# or say "no message received yet" (strings from diagnostics_watcher's
+# status_logic.py — keep them in sync); anything else means cmd_vel is
+# fresh, i.e. the robot is navigating, and evaluates to OK.
+apiVersion: v0.1
+kind: StatusDefinition
+metadata:
+  id: navigationActivity
+  scope: ''
+spec:
+  rules:
+  - function: CONTAINS
+    params: ["threshold"]
+    status: WARNING
+  - function: CONTAINS
+    params: ["no message"]
+    status: WARNING
+---
+# Status on the echoed message: 'error' and 'warning' values raise the
+# corresponding status; any other message is OK. The ERROR rule is listed
+# first because the evaluator stops at the first matching rule.
+apiVersion: v0.1
+kind: StatusDefinition
+metadata:
+  id: message
+  scope: ''
+spec:
+  rules:
+  - function: EQUALS
+    params: ["error"]
+    status: ERROR
+  - function: EQUALS
+    params: ["warning"]
+    status: WARNING
+---
+apiVersion: v0.1
+kind: IncidentDefinition
+metadata:
+  id: message
+  scope: ''
+spec:
+  label: Message
+  warning:
+    severity: SEV 2
+  error:
+    severity: SEV 1

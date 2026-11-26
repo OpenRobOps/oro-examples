@@ -1,0 +1,92 @@
+bodies:
+  - name: "base_link"
+    pose: [0, 0, 0]
+    type: dynamic
+    color: [0, 0, 1, 1]
+    footprints:
+      - type: circle
+        radius: 0.22
+        density: 1.0
+        layers: ["all"]
+    linear_damping: 5.0
+    angular_damping: 5.0
+
+plugins:
+  - type: DiffDrive
+    name: diff_drive
+    body: base_link
+    odom_frame_id: odom
+    twist_sub: cmd_vel
+    odom_pub: odom
+    ground_truth_pub: odometry/ground_truth
+    enable_odom_pub: true
+    # 20 Hz odom (+odom TF) is enough for nav2 (amcl/costmaps); 200 Hz made every
+    # TF listener in the stack process 10x the messages for no fidelity gain.
+    pub_rate: 20.0
+
+  - type: Laser
+    name: laser
+    body: base_link
+    frame: /laser_link
+    topic: scan
+    broadcast_tf: true
+    origin: [0, 0, 0]
+    range: 8.0
+    angle: {min: -2.18166, max: 2.18166, increment: 0.01745}
+    noise_std_dev: 0.01
+    update_rate: 10.0
+
+  - type: Battery
+    name: battery
+    body: base_link
+    topic: battery_state
+    pub_rate: 1.0
+    capacity_ah: 5.0
+    voltage_full: 12.6
+    voltage_empty: 10.0
+    base_current: 9.0
+    linear_current_coeff: 6.0
+    angular_current_coeff: 2.0
+    charge_current: 30.0
+    initial_charge: 1.0
+    charging_zones:
+      - name: "Charger A (Office)"
+        x: 9.0
+        y: 18.5
+        radius: 0.6
+      - name: "Charger D (Lobby)"
+        x: 11.5
+        y: 1.5
+        radius: 0.6
+
+  - type: ModelTfPublisher
+    name: tf_publisher
+    publish_tf_world: false
+    # Defaults to infinity (= every physics step); cap to keep /tf lightweight.
+    update_rate: 20.0
+
+  - type: Camera
+    name: front_camera
+    body: base_link
+    frame: camera_link
+    topic: image_raw
+    origin: [0.18, 0.0, 0.0]
+    update_rate: 10.0
+    width: 320
+    height: 240
+    fov_deg: 90.0
+    range: 8.0
+    layers: ["all"]
+    ignore_self: true
+    wall_height: 1.0
+    eye_height: 0.5
+    shade_min: 0.15
+    shade_max: 1.0
+    directional_shading: 0.85
+    sky_color: [120, 140, 160]
+    floor_color: [60, 55, 50]
+    fog_color: [30, 30, 30]
+    broadcast_tf: false
+    publish_camera_info: true
+    publish_compressed: true
+    jpeg_quality: 75
