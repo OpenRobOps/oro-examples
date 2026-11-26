@@ -24,6 +24,14 @@ services:
     # REAL=true (start.sh -r) drives a real TurtleBot3 on the same network instead
     command: ["ros2", "launch", "/turtlebot-oro/launch/demo.launch.py",
               "gazebo:=${GAZEBO:-false}", "map:=${MAP:-false}", "slam:=${SLAM:-false}", "real:=${REAL:-false}"]
+    # Healthy once the robot publishes /odom (fake, Gazebo or real). The agent waits for it:
+    # started together with Gazebo, the agent (4.36) never resolves the robot pose (stuck in ORO).
+    healthcheck:
+      test: ["CMD", "bash", "-c", "source /opt/ros/jazzy/setup.bash && timeout 5 ros2 topic echo --once /odom > /dev/null"]
+      interval: 5s
+      timeout: 10s
+      start_period: 120s
+      retries: 3
 
   # ROS2 InOrbit agent. Needs agent/agent.env.sh (copy agent/agent.env.sh.example).
   # start.sh enables the "agent" profile only when that file exists.
@@ -31,6 +39,9 @@ services:
     image: inorbitai/agent:ros-jazzy-4.36.0
     container_name: turtlebot_agent
     profiles: ["agent"]
+    depends_on:
+      turtlebot-sim:
+        condition: service_healthy
     hostname: turtlebot
     restart: always
     network_mode: host

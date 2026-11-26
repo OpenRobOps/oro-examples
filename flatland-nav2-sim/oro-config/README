@@ -1,0 +1,54 @@
+# OpenRobOps configs
+
+This folder contains YAML files that need to be applied to OpenRobOps to configure data sources,
+actions and other settings in OpenRobOps specific to this flatland simulation.
+
+| File | Contents |
+|------|----------|
+| `config.yaml` | key-value and ROS-diagnostics data sources, robot/fleet/welcome/navigation dashboards, battery/dock/message actions, ROS agentlet ModuleStates, statuses and incidents |
+| `maps.yaml` | a rendered "pretty" version of the simulation map as a shared `SpatialAnnotation`, shown next to the robot's own occupancy grid |
+| `footprint.yaml` | the fleet-wide `RobotFootprint` (nav2's 0.44 x 0.28 m rectangle enlarged to 0.60 x 0.38 m, rounded corners), so the Navigation widget draws the robot's real outline instead of the default ring |
+| `paths.yaml` | the fleet-wide `RobotPath` styling for nav2's planned paths: `"0"` (global plan, `/plan`) and `"1"` (local trajectory) |
+
+## Welcome page content
+
+The Welcome dashboard uses seven text widgets across three sections:
+
+**Intro section** (no title)
+
+| File | Layout | Content |
+|------|--------|---------|
+| `welcome-intro.md` | full width | Welcome heading and OpenRobOps intro |
+
+**Dashboards section**
+
+| File | Layout | Content |
+|------|--------|---------|
+| `welcome-fleet.md` | 4 columns | Fleet dashboard description |
+| `welcome-robot.md` | 4 columns | Robot dashboard description |
+| `welcome-navigation.md` | 4 columns | Navigation dashboard description |
+
+**Simulation section**
+
+| File | Layout | Content |
+|------|--------|---------|
+| `welcome-simulation-map.md` | 6 columns | Simulation details and ASCII map |
+| `welcome-action.md` | 6 columns | Commands and key-value telemetry |
+| `welcome-footer.md` | full width | GitHub / docker environment link |
+
+After editing any file, regenerate `config.yaml`:
+
+```
+node embed-welcome-content.mjs
+```
+
+## Apply configs
+
+Use the ORO CLI (`pipx install oro-cli`), pointed at your ORO:
+```
+oro context add local --url http://localhost:3000/api --api-key <API_KEY>
+oro apply -f config.yaml
+oro apply -f maps.yaml
+oro apply -f footprint.yaml
+oro apply -f paths.yaml
+```
