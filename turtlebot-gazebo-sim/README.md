@@ -21,7 +21,7 @@ All off by default. Combine them, e.g. `./start.sh -g -slam -k`.
 | Flag | What it does |
 |---|---|
 | `-g` | Gazebo robot (`turtlebot3_world`, simulated laser on `/scan`) instead of the fake one. Opens the Gazebo window. |
-| `-map` | Serves the Monopoly map (`maps/map.yaml`) and starts the robot on GO. Without it there's no map, and `map` = `odom`. |
+| `-map` | Serves the Monopoly map (`maps/map.yaml`) and starts the robot on GO. Without it there's no map, and `map` = `odom`. Meant for the fake robot: it doesn't match the Gazebo world, so with `-g` use `-slam` (or no map) instead. |
 | `-k` | Keyboard teleop in its own tmux window. |
 | `-slam` | Builds the map live with `slam_toolbox`. Needs `-g` or `-r`; not with `-map`. |
 | `-r` | Real TurtleBot3 on the same network instead of a simulated one ([onboarding](real_tb_onboarding.md)). |
@@ -120,7 +120,7 @@ matching one (`stamped:=`, set by `-g`), so the agent always detects the right t
 | Action | What it does |
 |---|---|
 | **Scan area** | Runs the explorer in the background: radius 2 / 3 / 5 m or no limit, for 1 / 3 / 5 min. Needs `-g -slam`. |
-| **Start mission** | Sends a waypoint route from `config/missions.yaml` (missions 1–3, tuned for the Gazebo world). |
+| **Start mission** | Sends a waypoint route from `config/missions.yaml` (missions 1–3, tuned for the Gazebo world: `-g` or `-g -slam`, not `-map`). |
 | **Stop mission** | Drops the current route and stops the wheels. |
 | **Emergency stop** (Navigation) | Ends any scan or mission and stops the wheels. Incidents use it too. |
 | **Add waypoint** (Waypoints) | Saves the robot's current pose. |
